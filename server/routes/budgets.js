@@ -26,24 +26,62 @@ router.get('/stats', (req, res) => {
 
 router.post('/', (req, res) => {
   try {
-    console.log('Received budget data:', req.body);
-    const validatedData = budgetSchema.parse(req.body);
-    console.log('Validated data:', validatedData);
+    console.log('Received budget data:', JSON.stringify(req.body, null, 2));
     
+    // Validate the request body
+    const validatedData = budgetSchema.parse(req.body);
+    console.log('Validated data:', JSON.stringify(validatedData, null, 2));
+    
+    // Create budget object
     const budget = {
       id: Date.now().toString(),
-      ...validatedData
+      ...validatedData,
+      // Ensure all required fields are present with correct types
+      amount: Number(validatedData.amount),
+      spent_amount: validatedData.spent_amount || 0,
+      cycle_type: validatedData.cycle_type,
+      category: validatedData.category,
+      platform: validatedData.platform || null,
+      start_date: validatedData.start_date,
+      end_date: validatedData.end_date,
+      active: validatedData.active !== undefined ? validatedData.active : true,
+      notes: validatedData.notes || null
     };
     
-    console.log('Attempting to create budget:', budget);
-    BudgetModel.create(budget);
+    console.log('Attempting to create budget:', JSON.stringify(budget, null, 2));
+    
+    // Create the budget in the database
+    const result = BudgetModel.create(budget);
+    console.log('Create result:', result);
+    
     res.status(201).json(budget);
   } catch (error) {
     console.error('Error creating budget:', error);
+    console.error('Error stack:', error.stack);
+    
     if (error.errors) {
-      return res.status(400).json({ errors: error.errors });
+      // Zod validation error
+      console.error('Validation errors:', error.errors);
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: error.errors 
+      });
     }
-    res.status(500).json({ error: error.message });
+    
+    if (error.code === 'SQLITE_CONSTRAINT') {
+      // SQLite constraint violation
+      return res.status(400).json({ 
+        error: 'Database constraint violation',
+        details: error.message 
+      });
+    }
+    
+    // Generic error
+    res.status(500).json({ 
+      error: 'Failed to create budget',
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
