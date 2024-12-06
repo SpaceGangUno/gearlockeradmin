@@ -9,6 +9,7 @@ router.get('/', (req, res) => {
     const budgets = BudgetModel.getAll();
     res.json(budgets);
   } catch (error) {
+    console.error('Error getting budgets:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -18,20 +19,27 @@ router.get('/stats', (req, res) => {
     const stats = BudgetModel.getStatsByCategory();
     res.json(stats);
   } catch (error) {
+    console.error('Error getting stats:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 router.post('/', (req, res) => {
   try {
+    console.log('Received budget data:', req.body);
     const validatedData = budgetSchema.parse(req.body);
+    console.log('Validated data:', validatedData);
+    
     const budget = {
       id: Date.now().toString(),
       ...validatedData
     };
+    
+    console.log('Attempting to create budget:', budget);
     BudgetModel.create(budget);
     res.status(201).json(budget);
   } catch (error) {
+    console.error('Error creating budget:', error);
     if (error.errors) {
       return res.status(400).json({ errors: error.errors });
     }
@@ -54,6 +62,7 @@ router.patch('/:id/spent', (req, res) => {
     BudgetModel.updateSpentAmount(req.params.id, spent_amount);
     res.json({ ...budget, spent_amount });
   } catch (error) {
+    console.error('Error updating spent amount:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -67,6 +76,7 @@ router.patch('/:id/toggle', (req, res) => {
     BudgetModel.toggleActive(req.params.id);
     res.json({ ...budget, active: !budget.active });
   } catch (error) {
+    console.error('Error toggling budget:', error);
     res.status(500).json({ error: error.message });
   }
 });

@@ -2,12 +2,12 @@ export interface Budget {
   id: string;
   name: string;
   amount: number;
-  spentAmount: number;
-  cycleType: 'monthly' | 'quarterly' | 'yearly';
+  spent_amount: number;
+  cycle_type: 'monthly' | 'quarterly' | 'yearly';
   category: 'ads' | 'promos' | 'influencers' | 'content' | 'other';
   platform?: string;
-  startDate: Date;
-  endDate: Date;
+  start_date: string;
+  end_date: string;
   active: boolean;
   notes?: string;
 }

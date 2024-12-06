@@ -9,13 +9,22 @@ interface AddBudgetFormProps {
   onAdd: (budget: Budget) => void;
 }
 
+type FormData = {
+  name: string;
+  amount: string;
+  cycle_type: Budget['cycle_type'];
+  category: Budget['category'];
+  platform: string;
+  notes: string;
+};
+
 export function AddBudgetForm({ onAdd }: AddBudgetFormProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     amount: '',
-    cycleType: 'monthly' as const,
-    category: 'ads' as const,
+    cycle_type: 'monthly',
+    category: 'ads',
     platform: '',
     notes: '',
   });
@@ -24,22 +33,39 @@ export function AddBudgetForm({ onAdd }: AddBudgetFormProps) {
     e.preventDefault();
     const startDate = new Date();
     const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + (formData.cycleType === 'yearly' ? 12 : formData.cycleType === 'quarterly' ? 3 : 1));
+    
+    switch (formData.cycle_type) {
+      case 'yearly':
+        endDate.setMonth(endDate.getMonth() + 12);
+        break;
+      case 'quarterly':
+        endDate.setMonth(endDate.getMonth() + 3);
+        break;
+      default:
+        endDate.setMonth(endDate.getMonth() + 1);
+    }
 
-    onAdd({
-      ...formData,
+    const budget = {
       id: Date.now().toString(),
+      name: formData.name,
       amount: parseFloat(formData.amount),
-      spentAmount: 0,
-      startDate,
-      endDate,
+      spent_amount: 0,
+      cycle_type: formData.cycle_type,
+      category: formData.category,
+      platform: formData.platform,
+      start_date: startDate.toISOString(),
+      end_date: endDate.toISOString(),
       active: true,
-    } as Budget);
+      notes: formData.notes || ''
+    };
+
+    console.log('Submitting budget:', budget);
+    onAdd(budget as unknown as Budget);
     
     setFormData({
       name: '',
       amount: '',
-      cycleType: 'monthly',
+      cycle_type: 'monthly',
       category: 'ads',
       platform: '',
       notes: '',
@@ -86,8 +112,8 @@ export function AddBudgetForm({ onAdd }: AddBudgetFormProps) {
               Cycle Type
             </label>
             <select
-              value={formData.cycleType}
-              onChange={(e) => setFormData({ ...formData, cycleType: e.target.value as Budget['cycleType'] })}
+              value={formData.cycle_type}
+              onChange={(e) => setFormData({ ...formData, cycle_type: e.target.value as Budget['cycle_type'] })}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             >
               <option value="monthly">Monthly</option>
