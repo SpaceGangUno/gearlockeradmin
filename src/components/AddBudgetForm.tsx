@@ -45,6 +45,11 @@ export function AddBudgetForm({ onAdd }: AddBudgetFormProps) {
         endDate.setMonth(endDate.getMonth() + 1);
     }
 
+    // Format dates as ISO strings without milliseconds
+    const formatDate = (date: Date) => {
+      return date.toISOString().split('.')[0] + 'Z';
+    };
+
     const budget = {
       id: Date.now().toString(),
       name: formData.name,
@@ -52,11 +57,11 @@ export function AddBudgetForm({ onAdd }: AddBudgetFormProps) {
       spent_amount: 0,
       cycle_type: formData.cycle_type,
       category: formData.category,
-      platform: formData.platform,
-      start_date: startDate.toISOString(),
-      end_date: endDate.toISOString(),
+      platform: formData.platform || undefined,
+      start_date: formatDate(startDate),
+      end_date: formatDate(endDate),
       active: true,
-      notes: formData.notes || ''
+      notes: formData.notes || undefined
     };
 
     console.log('Submitting budget:', budget);
